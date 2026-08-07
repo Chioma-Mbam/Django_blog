@@ -49,16 +49,21 @@ def register(request):
 
 def login(request):
     if request.method == 'POST':
-        form = AuthenticationForm(request, request.POST)
+        form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username=form.cleaned_data['username']
+            username = form.cleaned_data['username']
             password = form.cleaned_data['password']
         
-        user = auth.authenticate(username=username, password=password)
-        if user is not None:
-            auth.login(request, user)
-        return redirect('home')
-    form = AuthenticationForm()
+            user = auth.authenticate(username=username, password=password)
+            if user is not None:
+                auth.login(request, user)
+                next_url = request.POST.get('next') or request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('home')
+            
+    else:
+        form = AuthenticationForm()
     context={
         'form':form,
     }
